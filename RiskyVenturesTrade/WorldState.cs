@@ -2,9 +2,10 @@
 {
     internal class WorldState
     {
-        public HashSet<Port> Ports { get; set; }
-        public HashSet<Ship> Ships { get; set; }
-
+        public HashSet<Port> Ports { get; set; } = new HashSet<Port>();
+        public HashSet<Ship> Ships { get; set; } = new HashSet<Ship>();
+        public HashSet<ShipType> ShipTypes { get; set; } = new HashSet<ShipType>();
+        public HashSet<Captain> Captains { get; set; } = new HashSet<Captain>();
     }
 
 
@@ -12,10 +13,10 @@
     {
         public string Name { get; set; }
         public int Distance { get; set; }
-        public float Danger { get; set; }
+        public double Danger { get; set; }
         public int ProductionType { get; set; }
-        public Dictionary<int, float> Market { get; set; } = new();
-        public Dictionary<int, float> Appetites { get; set; } = new();
+        public Dictionary<int, double> Market { get; set; } = new();
+        public Dictionary<int, double> Appetites { get; set; } = new();
     }
 
     internal class Ship
@@ -23,10 +24,22 @@
         public string Name { get; set; }
         public Dictionary<int, int> Cargo { get; set; } = new();
         public Captain Captain { get; set; }
-        public int Type { get; set; }
+        public ShipType Type { get; set; }
         public List<Disasters> Disasters { get; set; } = new();
         public Port Destination { get; set; }
         public int Progress { get; set; }
+    }
+
+    internal class ShipType
+    {
+        public int Type { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public int Speed { get; set; }
+        public int Cost { get; set; }
+        public int Health { get; set; }
+
+        public int Capacity { get; set; }
     }
 
     internal class Captain
