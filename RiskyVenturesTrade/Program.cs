@@ -18,7 +18,9 @@
                 Console.WriteLine("1.Create New Ship");
                 Console.WriteLine("2.Create New Captain");
                 Console.WriteLine("3.Send Ship");
-                Console.WriteLine("4.Advance Turn");
+                Console.WriteLine("4.Sell Goods");
+                Console.WriteLine("5.Buy Goods");
+                Console.WriteLine("6.Advance Turn");
                 Console.WriteLine("0.Save and Exit");
                 Console.WriteLine("-.Exit Without Saving");
                 var option = Console.ReadKey();
@@ -65,6 +67,47 @@
                 return;
             ship.Type = WorldState.ShipTypes[type];
             Console.WriteLine(ship.Type.Name+" "+ship.Name+" created");
+        }
+
+        static void NewCaptain()
+        {
+            var cap = new Captain();
+            Console.WriteLine("What is the name of this captain?");
+            var name = Console.ReadLine();
+            cap.Name = name;
+            Console.WriteLine("What is the type of this Captain? (e/t)");
+            var option = Console.ReadKey();
+            if (option.KeyChar != 'e' && option.KeyChar != 't')
+                return;
+            cap.CaptainSpec = option.KeyChar == 'e' ? CaptainSpec.Exploration : CaptainSpec.Trade;
+            Console.WriteLine(cap.CaptainSpec + " " + cap.Name + " created");
+        }
+
+        static void SendShip()
+        {
+            Console.WriteLine("What ship do you want to send?");
+            var shipsInPort = WorldState.Ships.Where(s => s.Destination == null).ToList();
+            for (var i = 0; i < shipsInPort.Count; i++)
+            {
+                Console.WriteLine(i + "." + shipsInPort[i].Name);
+            }
+            var option = Console.ReadKey();
+            if (int.TryParse(option.ToString(), out var num) || num >= shipsInPort.Count)
+                return;
+            var ship = shipsInPort[num];
+            Console.WriteLine("Where do you want to send the ship?");
+            var ports = WorldState.Ports;
+            for (var i = 1; i < ports.Count; i++)
+            {
+                Console.WriteLine(i + "." + ports[i].Name);
+            }
+            Console.WriteLine("0.Exploration");
+            option = Console.ReadKey();
+            if (int.TryParse(option.ToString(), out var port) || port >= ports.Count)
+                return;
+            ship.Destination = ports[port].Id;
+            Console.WriteLine("Who will captain the ship?");
+            var caps = WorldState.Captains.ToList();
         }
     }
 }
