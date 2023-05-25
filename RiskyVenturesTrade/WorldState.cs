@@ -4,7 +4,7 @@
     {
         public HashSet<Port> Ports { get; set; } = new HashSet<Port>();
         public HashSet<Ship> Ships { get; set; } = new HashSet<Ship>();
-        public HashSet<ShipType> ShipTypes { get; set; } = new HashSet<ShipType>();
+        public List<ShipType> ShipTypes { get; set; } = new List<ShipType>();
         public HashSet<Captain> Captains { get; set; } = new HashSet<Captain>();
     }
 

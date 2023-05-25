@@ -10,9 +10,19 @@
         static WorldState WorldState;
         static void Main(string[] args)
         {
-
+            Load();
             Console.WriteLine("Welcome to Risky Ventures: Trade!");
-            Console.WriteLine("Please choose an action:");
+            while (true)
+            {
+                Console.WriteLine("Please choose an action:");
+                Console.WriteLine("1.Create New Ship");
+                Console.WriteLine("2.Create New Captain");
+                Console.WriteLine("3.Send Ship");
+                Console.WriteLine("4.Advance Turn");
+                Console.WriteLine("0.Save and Exit");
+                Console.WriteLine("-.Exit Without Saving");
+                var option = Console.ReadKey();
+            }
         }
 
         static void Load()
@@ -37,6 +47,24 @@
         {
             var text = JsonConvert.SerializeObject(WorldState);
             File.WriteAllText(fileLocation, text);
+        }
+
+        static void NewShip()
+        {
+            var ship = new Ship();
+            Console.WriteLine("What is the name of this ship?");
+            var name = Console.ReadLine();
+            ship.Name = name;
+            Console.WriteLine("What is the type of this ship?");
+            for (var i = 0; i < WorldState.ShipTypes.Count; i++)
+            {
+                Console.WriteLine(i + "." + WorldState.ShipTypes[i].Name);
+            }
+            var option = Console.ReadKey();
+            if (int.TryParse(option.ToString(), out var type) || type >= WorldState.ShipTypes.Count)
+                return;
+            ship.Type = WorldState.ShipTypes[type];
+            Console.WriteLine(ship.Type.Name+" "+ship.Name+" created");
         }
     }
 }
