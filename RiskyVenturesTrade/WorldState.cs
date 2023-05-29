@@ -2,15 +2,16 @@
 {
     internal class WorldState
     {
-        public List<Port> Ports { get; set; } = new List<Port>();
+        public List<Port> Ports { get; set; } = new();
         public int PortCount { get; set; }
-        public HashSet<Ship> Ships { get; set; } = new HashSet<Ship>();
-        public List<ShipType> ShipTypes { get; set; } = new List<ShipType>();
+        public HashSet<Ship> Ships { get; set; } = new();
+        public List<ShipType> ShipTypes { get; set; } = new();
         public int ShipCount { get; set; }
-        public HashSet<Captain> Captains { get; set; } = new HashSet<Captain>();
+        public HashSet<Captain> Captains { get; set; } = new();
         public int CapCount { get; set; }
-        public List<Good> Goods { get; set; } = new List<Good>();
+        public List<Good> Goods { get; set; } = new();
         public int GoodCount { get; set; }
+        public HashSet<Enterprise> Enterprises { get; set; } = new();
     }
 
 
@@ -37,6 +38,18 @@
         public int? Destination { get; set; }
         public int Progress { get; set; }
         public double Florins { get; set; }
+        public Dictionary<int, double> Market { get; set; } = new();
+        public Dictionary<int, int> StockPile { get; set; } = new();
+    }
+
+    internal class Enterprise
+    {
+        public int Port { get; set; }
+        public double Florins { get; set; }
+        public int StockPile { get; set; }
+        public bool AutoSell { get; set; }
+        public int Good { get; set; }
+        public int ProductionSpeed { get; set;}
     }
 
     internal class ShipType

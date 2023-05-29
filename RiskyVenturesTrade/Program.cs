@@ -21,7 +21,8 @@
                 Console.WriteLine("4.Sell Goods");
                 Console.WriteLine("5.Buy Goods");
                 Console.WriteLine("6.Ship Cargo");
-                Console.WriteLine("7.Advance Turn");
+                Console.WriteLine("7.Enterprises");
+                Console.WriteLine("8.Advance Turn");
                 Console.WriteLine("0.Save and Exit");
                 Console.WriteLine("-.Exit Without Saving");
                 var option = Console.ReadKey();
@@ -54,89 +55,112 @@
                 WorldState = JsonConvert.DeserializeObject<WorldState>(text);
             }
             else
+                SetUpNewWorld();
+        }
+
+        static void SetUpNewWorld()
+        {
+            WorldState = new();
+            WorldState.Ports.Add(new Port
             {
-                WorldState = new();
-                WorldState.Ports.Add(new Port
-                {
-                    Name = "HomeLands",
-                    Appetites = new Dictionary<int, double>
+                Name = "HomeLands",
+                Appetites = new Dictionary<int, double>
                     {
                         {
                             0, 0
                         },
                         {
                             1, 0
-                        }
+                        },
+                        {
+                            99, 0
+                        },
                     },
-                    Danger = 0,
-                    Distance = 0,
-                    Market = new Dictionary<int, double>
+                Danger = 0,
+                Distance = 0,
+                Market = new Dictionary<int, double>
                     {
                         {
                             0, 1
                         },
                         {
                             1, 10
-                        }
+                        },
+                        {
+                            99, 10
+                        },
                     },
-                    ProductionType = 0,
-                    ProductionSpeed = 100,
-                    StockPile = new Dictionary<int, int>
+                ProductionType = 0,
+                ProductionSpeed = 100,
+                StockPile = new Dictionary<int, int>
                     {
                         {
                             0, 1000
                         },
                         {
                             1, 0
+                        },
+                        {
+                            99, 100
                         }
                     },
-                    Id = 0
-                });
-                WorldState.Ports.Add(new Port
-                {
-                    Name = "ChannelCross",
-                    Appetites = new Dictionary<int, double>
+                Id = 0
+            });
+            WorldState.Ports.Add(new Port
+            {
+                Name = "ChannelCross",
+                Appetites = new Dictionary<int, double>
                     {
                         {
                             0, 0
                         },
                         {
                             1, 0
-                        }
+                        },
+                        {
+                            99, 0
+                        },
+
                     },
-                    Danger = 0.01,
-                    Distance = 1,
-                    Market = new Dictionary<int, double>
+                Danger = 0.01,
+                Distance = 1,
+                Market = new Dictionary<int, double>
                     {
                         {
-                            0, 10
+                            0, 5
                         },
                         {
                             1, 1
-                        }
+                        },
+                        {
+                            99, 20
+                        },
                     },
-                    ProductionType = 1,
-                    ProductionSpeed = 10,
-                    Id = 1,
-                    StockPile = new Dictionary<int, int>
+                ProductionType = 1,
+                ProductionSpeed = 10,
+                Id = 1,
+                StockPile = new Dictionary<int, int>
                     {
                         {
-                            0,0
+                            0,10
                         },
                         {
                             1, 100
-                        }
+                        },
+                        {
+                            99, 0
+                        },
                     }
-                });
-                WorldState.PortCount = 2;
-                WorldState.ShipTypes.Add(new ShipType { Cost = 100, Name = "Cog", Description = "Trade Ship", Health = 2, Speed = 10, Capacity = 10, Id = 0});
-                WorldState.ShipTypes.Add(new ShipType { Cost = 100, Name = "Caravel", Description = "Exploration Ship", Health = 3, Speed = 15, Capacity = 5 , Id = 1 });
-                WorldState.ShipCount = 2;
-                WorldState.CapCount = 0;
-                WorldState.Goods.Add(new Good {Id = 0, Name = "Lumber"});
-                WorldState.Goods.Add(new Good { Id = 1, Name = "Sand" });
-                WorldState.GoodCount = 2;
-            }
+            });
+            WorldState.PortCount = 2;
+            WorldState.ShipTypes.Add(new ShipType { Cost = 100, Name = "Cog", Description = "Trade Ship", Health = 2, Speed = 10, Capacity = 10, Id = 0 });
+            WorldState.ShipTypes.Add(new ShipType { Cost = 100, Name = "Caravel", Description = "Exploration Ship", Health = 3, Speed = 15, Capacity = 5, Id = 1 });
+            WorldState.ShipCount = 2;
+            WorldState.CapCount = 0;
+            WorldState.Goods.Add(new Good { Id = 0, Name = "Lumber" });
+            WorldState.Goods.Add(new Good { Id = 1, Name = "Sand" });
+            WorldState.Goods.Add( new Good {Id = 99, Name = "Tools"});
+            WorldState.GoodCount = 3;
         }
 
         static void Save()
