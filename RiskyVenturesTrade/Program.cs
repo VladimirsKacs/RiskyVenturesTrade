@@ -1,4 +1,6 @@
-﻿namespace RiskyVenturesTrade
+﻿using System.Runtime.InteropServices.ComTypes;
+
+namespace RiskyVenturesTrade
 {
     using Newtonsoft.Json;
     using System;
@@ -7,6 +9,7 @@
     {
 
         const string fileLocation = "world.dat";
+        static Random Rand = new();
 
         static WorldState WorldState;
         static void Main(string[] args)
@@ -172,6 +175,7 @@
             WorldState.Goods.Add(new Good { Id = 1, Name = "Sand", FairPrice=10 });
             WorldState.Goods.Add( new Good {Id = 99, Name = "Tools", FairPrice = 20});
             WorldState.GoodCount = 2;
+            WorldState.Turn = 0;
         }
 
         static void Save()
@@ -196,6 +200,8 @@
                 return;
             ship.Type = WorldState.ShipTypes[type].Id;
             ship.Hp = WorldState.ShipTypes[type].Health;
+            ship.HpMax = WorldState.ShipTypes[type].Health;
+            ship.Speed = WorldState.ShipTypes[type].Speed;
             WorldState.Ships.Add(ship);
             Console.WriteLine(WorldState.ShipTypes[ship.Type].Name+" "+ship.Name+" created");
         }
@@ -323,7 +329,11 @@
                 var ship = shipsInPort[num];
                 Console.WriteLine("how much would you like to sell?");
                 amount = int.Parse(Console.ReadLine());
-                if (amount == 0) { amount = ship.Cargo[goodId]}
+                if (amount == 0)
+                {
+                    amount = ship.Cargo[goodId];
+
+                }
                 if (ship.Cargo[goodId] < amount)
                 {
                     Console.WriteLine("too much");
@@ -341,7 +351,9 @@
 
         static void Advance()
         {
-            
+            WorldState.Turn++;
+            AdvanceShips();
+            AdvanceMarkets();
         }
 
         static void AdvanceShips()
@@ -355,7 +367,19 @@
                 }
 
                 var port = WorldState.Ports[ship.Destination.Value];
-                var speed = WorldState.ShipTypes[ship.Type].Speed;
+                var speed = ship.Speed;
+                switch (ProblemTrade(ship, port))
+                {
+                    case Disasters.Damage: ship.Hp--;
+                        break;
+                    case Disasters.Delay: speed = Rand.Next(0, speed); break;
+                    case Disasters.Jetsam: 
+                        //TODO
+                    default:
+                        break;
+                }
+                
+
                 if (ship.Progress < port.Distance / 2 && ship.Progress + speed > port.Distance / 2)
                     Trade(ship, port);
                 ship.Progress += speed;
@@ -364,19 +388,64 @@
             }
         }
 
+        static Disasters ProblemTrade(Ship ship, Port port)
+        {
+            var cap = WorldState.Captains.FirstOrDefault(c => c.Id == ship.Captain);
+            var adjuster = CaptainExpertise.ProblemAversion[cap.Level - 1 * (cap.CaptainSpec == CaptainSpec.Exploration ? 1 : 0)];
+            var probability = adjuster * port.Danger;
+            if (Rand.NextDouble() < probability)
+            {
+                switch (Rand.Next(0, 3))
+                {
+                    case 0:
+                        return Disasters.Damage;
+                    case 1:
+                        return Disasters.Delay;
+                    case 2:
+                        return Disasters.Jetsam;
+                }
+            }
+            return Disasters.None;
+        }
+
         static void Discovery(Ship ship)
-        { 
-            throw new NotImplementedException();
+        {
+            var target = Rand.Next((WorldState.PortCount + 5)*5,(WorldState.PortCount + 5) * 25);
+            if (ship.Progress > target)
+                NewLands(ship, target);
+        }
+
+        static void NewLands(Ship ship, int distance)
+        {
+            
         }
 
         static void Trade(Ship ship, Port port)
         {
-            throw new NotImplementedException();
+            foreach (var good in WorldState.Goods)
+            {
+                var cargo = ship.Cargo[good.Id];
+                ship.Cargo[good.Id] = 0;
+                ship.Florins += port.Market[good.Id] * cargo*(1-WorldState.PriceAdjustment);
+                port.StockPile[good.Id] += cargo;
+            }
+            var price = port.Market[port.ProductionType]*(1+WorldState.PriceAdjustment);
+            var amount = WorldState.ShipTypes[ship.Type].Capacity;
+            if (price*amount>ship.Florins)
+                amount = (int) (ship.Florins/price);
+            if(amount>port.StockPile[port.ProductionType])
+                amount = port.StockPile[port.ProductionType];
+            ship.Cargo[port.ProductionType] = amount;
+            ship.Florins -= price * amount;
+
+            ship.Market=port.Market;
+            ship.StockPile=port.StockPile;
+            ship.MarketTurn = WorldState.Turn;
         }
 
         static void Arrival(Ship ship)
         {
-            throw new NotImplementedException();
+            
         }
 
         static void AdvanceMarkets()
@@ -385,11 +454,32 @@
             {
                 var market = port.Market;
                 var stockpile = port.StockPile;
-                var appetite = port.Appetites;
+                var appetites = port.Appetites;
                 stockpile[port.Id] += port.ProductionSpeed;
                 foreach ( var good in WorldState.Goods)
                 {
-                    stockpile[good.Id] -= (int)appetite[good.Id];
+                    if (port.ProductionType == good.Id)
+                    {
+                        var priceTarget = good.FairPrice * (1 + good.FairPrice) / (stockpile[good.Id] + good.FairPrice);
+                        market[good.Id] = (priceTarget + market[good.Id] * 4) / 5 + Rand.NextDouble()*0.2 - 0.1;
+                    }
+                    else
+                    {
+                        if (stockpile[good.Id] < (int)appetites[good.Id])
+                            stockpile[good.Id] = 0;
+                        else
+                            stockpile[good.Id] -= (int)appetites[good.Id];
+                        var priceTarget = good.FairPrice * (appetites[good.Id] + good.FairPrice) /
+                                          (stockpile[good.Id] + good.FairPrice);
+                        market[good.Id] = (priceTarget + market[good.Id] * 4) / 5 + Rand.NextDouble() - 0.5;
+                        var appetiteAdjustment = good.FairPrice - market[good.Id];
+                        if (appetites[good.Id] + appetiteAdjustment < 0)
+                            appetites[good.Id] = 0;
+                        else
+                            appetites[good.Id] += appetiteAdjustment;
+                        if (stockpile[good.Id] == 0)
+                            appetites[good.Id] /= 2;
+                    }
                 }
             }
         }

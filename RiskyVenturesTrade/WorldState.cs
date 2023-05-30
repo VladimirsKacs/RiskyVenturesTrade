@@ -12,6 +12,8 @@
         public List<Good> Goods { get; set; } = new();
         public int GoodCount { get; set; }
         public HashSet<Enterprise> Enterprises { get; set; } = new();
+        public double PriceAdjustment => 0.1;
+        public int Turn { get; set; }
     }
 
 
@@ -45,13 +47,21 @@
         }
         public int Captain { get; set; }
         public int Type { get; set; }
-        public int Hp { get; set; };
+        public int Hp { get; set; }
+        public int HpMax { get; set; }
+        public int Speed { get; set; }
         public int? Destination { get; set; }
         public int Progress { get; set; }
         public double Florins { get; set; }
         public int MarketTurn { get; set; }
         public Dictionary<int, double> Market { get; set; } = new();
         public Dictionary<int, int> StockPile { get; set; } = new();
+        public List<Item> Items { get; set; } = new();
+    }
+
+    internal class Item
+    {
+        //Base Class for all items
     }
 
     internal class Enterprise
@@ -102,10 +112,36 @@
 
     public enum Disasters
     {
-        Minor = 0,
+        None = 0,
         Delay = 1,
         Jetsam = 2,
         Damage = 3,
+    }
+
+    public static class CaptainExpertise
+    {
+        public static Dictionary<int, int> Exp { get; } =
+            new()
+            {
+                { 0, 0 },
+                { 1, 10 },
+                { 2, 30 },
+                { 3, 60 },
+                { 4, 100 },
+                { 5, 150 },
+                { 6, 999999 }
+            };
+        public static Dictionary<int, double> ProblemAversion { get; } =
+            new()
+            {
+                {0, 1.25},
+                { 1, 1 },
+                { 2, 0.9 },
+                { 3, 0.8 },
+                { 4, 0.7 },
+                { 5, 0.6 },
+                { 6, 0.5 }
+            };
     }
 
 }
