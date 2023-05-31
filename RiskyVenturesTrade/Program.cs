@@ -122,7 +122,7 @@ namespace RiskyVenturesTrade
             });
             WorldState.Ports.Add(new Port
             {
-                Name = "ChannelCross",
+                Name = "New Haven",
                 Appetites = new Dictionary<int, double>
                     {
                         {
@@ -137,7 +137,7 @@ namespace RiskyVenturesTrade
 
                     },
                 Danger = 0.01,
-                Distance = 1,
+                Distance = 20,
                 Market = new Dictionary<int, double>
                     {
                         {
@@ -412,13 +412,69 @@ namespace RiskyVenturesTrade
         {
             var target = Rand.Next((WorldState.PortCount + 5)*5,(WorldState.PortCount + 5) * 25);
             if (ship.Progress > target)
-                NewLands(ship, target);
+                NewLands(ship, target / 2 );
         }
 
         static void NewLands(Ship ship, int distance)
         {
-            
+            //idea: repeating goods
+            string name;
+            do
+            {
+                name = GoodNames[Rand.Next(GoodNames.Count)];
+            } while (WorldState.Goods.Exists(p => p.Name == name));
+            var good = new Good
+            {
+                FairPrice = Rand.Next(distance / 4, distance / 2),
+                Id = WorldState.GoodCount++,
+                Name = name
+            };
+            WorldState.Goods.Add(good);
+            foreach (var oldPort in WorldState.Ports)
+            {
+                oldPort.Market[good.Id] = good.FairPrice;
+                oldPort.StockPile[good.Id] = 0;
+            }
+            var port = new Port();
+            do
+            {
+                name = LandNameGen();
+            } while (WorldState.Ports.Exists(p=>p.Name == name));
+            port.Distance = distance;
+            port.Name = name;
+            port.Id = WorldState.PortCount++;
+            port.ProductionSpeed = Rand.Next(10, 20);
+            port.Danger = Rand.NextDouble() * 0.5;
+            port.ProductionType = good.Id;
+            foreach (var oldGood in WorldState.Goods)
+            {
+                port.Market[oldGood.Id] = oldGood.FairPrice;
+                port.StockPile[oldGood.Id] = 0;
+            }
+
+            port.Market[good.Id] = good.FairPrice / 5;
+            port.StockPile[good.Id] = 100;
+            WorldState.Ports.Add(port);
         }
+
+        static readonly List<string> GoodNames = new List<string> { "Apples", "Bananas", "Copper", "Diamonds", "Escargot", "Figs", "Gold", "Hemp", "Iron", "Jelly", "Knick-knacks",
+            "Lemons", "Melons", "Nylons", "Opiates", "Pearls", "Quartz", "Resin", "Silver", "Tangerines", "Uranium"};
+
+        static readonly List<string> Beginnings = new List<string> { "New", "Port", "Cape", "Great"};
+        static readonly List<string> Endings = new List<string> { "Isle", "Shore", "Springs", "Rock", "Island", "Haven" };
+        static readonly List<string> Names = new List<string> { "Aral", "Bean", "Cage", "Deft", "Envin", "Frakes", "Golen",
+            "Hyun", "Iverson", "Jackson", "Kath", "Leguin", "Minster", "O'Mann", "Price", "Questor", "Reiff", "St.Quinn",
+            "Teviegh", "Vronsky", "West", "Xanadu", "Zapata", "Azer", "Bizzt", "Cerg", "Dreary", "Esthman", "Firm", "Grimm", "Heiger",
+            "Iskra", "Jay", "Kell", "L'Etarto","Magimann","Orkin", "Pigmen", "Roald", "Severus", "Trata", "Urist", "Vexler", "Worclaw", "Xander",
+            "Yersika", "Zeit" };
+
+        static string LandNameGen()
+        {
+            if(Rand.Next() > 0.5)
+                return Beginnings[Rand.Next(Beginnings.Count)] + " " + Names[Rand.Next(Names.Count)];
+            return Names[Rand.Next(Names.Count)] + " " + Endings[Rand.Next(Endings.Count)];
+        }
+
 
         static void Trade(Ship ship, Port port)
         {
