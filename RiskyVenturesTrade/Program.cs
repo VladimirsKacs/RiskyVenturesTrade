@@ -247,6 +247,7 @@ namespace RiskyVenturesTrade
             if (int.TryParse(option.ToString(), out var port) || port >= ports.Count)
                 return;
             ship.Destination = ports[port].Id;
+            ship.Progress = 0;
             Console.WriteLine("Who will captain the ship?");
             var caps = WorldState.Captains.ToList();
             for (var i = 0; i < caps.Count; i++)
@@ -360,6 +361,11 @@ namespace RiskyVenturesTrade
         {
             foreach (var ship in WorldState.Ships)
             {
+                if (ship.Hp <= 0)
+                {
+                    WorldState.Captains.RemoveWhere(c => c.Id == ship.Captain);
+                    WorldState.Ships.Remove(ship);
+                }
                 if (ship.Destination == null) continue;
                 if (ship.Destination.Value == 0) {
                     Discovery(ship);
@@ -380,10 +386,10 @@ namespace RiskyVenturesTrade
                 }
                 
 
-                if (ship.Progress < port.Distance / 2 && ship.Progress + speed > port.Distance / 2)
+                if (ship.Progress < port.Distance / 2 && ship.Progress + speed >= port.Distance / 2)
                     Trade(ship, port);
                 ship.Progress += speed;
-                if (ship.Progress > port.Distance)
+                if (ship.Progress >= port.Distance)
                     Arrival(ship);
             }
         }
@@ -408,11 +414,45 @@ namespace RiskyVenturesTrade
             return Disasters.None;
         }
 
+        static Disasters ProblemExploration(Ship ship)
+        {
+            var cap = WorldState.Captains.FirstOrDefault(c => c.Id == ship.Captain);
+            var adjuster = CaptainExpertise.ProblemAversion[cap.Level - 1 * (cap.CaptainSpec == CaptainSpec.Trade ? 1 : 0)];
+            var probability = adjuster * 0.5;
+            if (Rand.NextDouble() < probability)
+            {
+                switch (Rand.Next(0, 3))
+                {
+                    case 0:
+                        return Disasters.Damage;
+                    case 1:
+                    case 2:
+                        return Disasters.Delay;
+                }
+            }
+            return Disasters.None;
+        }
+
         static void Discovery(Ship ship)
         {
             var target = Rand.Next((WorldState.PortCount + 5)*5,(WorldState.PortCount + 5) * 25);
             if (ship.Progress > target)
                 NewLands(ship, target / 2 );
+            else
+            {
+                var speed = ship.Speed;
+                switch (ProblemExploration(ship))
+                {
+                    case Disasters.Delay:
+                        speed = Rand.Next(speed);
+                        break;
+                    case Disasters.Damage:
+                        ship.Hp--;
+                        break;
+                }
+
+                ship.Progress += speed;
+            }
         }
 
         static void NewLands(Ship ship, int distance)
@@ -455,6 +495,13 @@ namespace RiskyVenturesTrade
             port.Market[good.Id] = good.FairPrice / 5;
             port.StockPile[good.Id] = 100;
             WorldState.Ports.Add(port);
+            ship.Market = port.Market;
+            ship.StockPile = port.StockPile;
+            ship.MarketTurn = WorldState.Turn;
+            ship.Destination = null;
+            ship.Progress = 0;
+            Console.WriteLine(
+                ship.Name + " has returned from it's voyage of exploration, bringing news of " + port.Name);
         }
 
         static readonly List<string> GoodNames = new List<string> { "Apples", "Bananas", "Copper", "Diamonds", "Escargot", "Figs", "Gold", "Hemp", "Iron", "Jelly", "Knick-knacks",
@@ -501,7 +548,11 @@ namespace RiskyVenturesTrade
 
         static void Arrival(Ship ship)
         {
-            
+            var port = WorldState.Ports[ship.Destination.Value];
+            Console.WriteLine(
+                ship.Name + " has returned from " + port.Name + ", bringing " + ship.Cargo[port.ProductionType] + " " + WorldState.Goods[port.ProductionType].Name);
+            ship.Destination = null;
+            ship.Progress = 0;
         }
 
         static void AdvanceMarkets()
