@@ -1,9 +1,7 @@
-﻿using System.Runtime.InteropServices.ComTypes;
-
-namespace RiskyVenturesTrade
+﻿namespace RiskyVenturesTrade
 {
-    using Newtonsoft.Json;
     using System;
+    using Newtonsoft.Json;
 
     public class Program
     {
